@@ -43,7 +43,9 @@
 ![02](Images/02.png)
 
 - In the application overview you can see `Application Name`, `Application ID` and `Tenant ID`.
-  
+ 
+![03](Images/03.png)
+
 - After creating the application, we need to set API permissions for connector. For this purpose,
   - Click `Manage->API permissions` tab
   - Click `Add a permission` button
@@ -51,8 +53,6 @@
   - Search `indicator` and click on the `ThreatIndicators.ReadWrite.OwnedBy`, click `Add permissions` button below.
 
  ![app_per](Images/app_per.png) 
-
-![03](Images/03.png)
 
 - We need secrets to access programmatically. For creating secrets
   - Click `Manage->Certificates & secrets` tab
