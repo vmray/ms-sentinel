@@ -1,0 +1,465 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "title": "VMRay URL Analyis", 
+        "description": "Submits a url or set of urls associated with an incident to VMRay for Analyis.",
+        "prerequisites": "VMRay API Key.",       
+        "prerequisitesDeployTemplateFile": "../VMRay/FunctionApp/azuredeploy.json",
+        "postDeploymentSteps": ["None"],      
+        "lastUpdateTime": "2025-02-20T00:00:00.000Z", 
+        "entities": ["url"], 
+        "tags": ["Enrichment"], 
+        "support": {
+            "tier": "community" 
+        },
+        "author": {
+            "name": "VMRay"
+        }
+    },
+    "parameters": {
+        "PlaybookName": {
+            "defaultValue": "Submit-URL-VMRay-Analyzer",
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App/Playbook"
+            }
+        },
+        "FunctionAppName": {
+            "defaultValue": "vmrayenrich",
+            "type": "string",
+            "metadata": {
+                "description": "Name of the FunctionApp"
+            }
+        }
+    },
+    "variables": {
+		"functionappName": "[concat(toLower(parameters('FunctionAppName')), take(uniqueString(resourceGroup().id), 3))]",
+		"AzureSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]"
+	},
+    "resources": [
+		{
+			"type": "Microsoft.Web/connections",
+			"apiVersion": "2016-06-01",
+			"name": "[variables('AzureSentinelConnectionName')]",
+			"location": "[resourceGroup().location]",
+			"kind": "V1",
+			"properties": {
+				"displayName": "[variables('AzureSentinelConnectionName')]",
+				"customParameterValues": {},
+				"parameterValueType": "Alternative",
+				"api": {
+					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+				}
+			}
+		},
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('PlaybookName')]",
+            "location": "[resourceGroup().location]",
+			"identity": {
+				"type": "SystemAssigned"
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]"
+			],
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "body": {
+                                    "callback_url": "@listCallbackUrl()"
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_URLs": {
+                            "runAfter": {
+                                "SubmissionReportforTable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                                "path": "/entities/url"
+                            }
+                        },
+                        "For_each_URL": {
+                            "foreach": "@body('Entities_-_Get_URLs')?['URLs']",
+                            "actions": {
+                                "UplaodURL": {
+                                    "type": "Function",
+                                    "inputs": {
+                                        "body": {
+                                            "url": "@items('For_each_URL')['url']",
+                                            "tags": "playbook"
+                                        },
+                                        "function": {
+											"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/UplaodURL')]"
+                                        }
+                                    }
+                                },
+                                "Check_if_the_status_is_200": {
+                                    "actions": {
+                                        "For_each_submission": {
+                                            "foreach": "@body('UplaodURL')?['vmray_submission']",
+                                            "actions": {
+                                                "Set_Submission_Status": {
+                                                    "type": "SetVariable",
+                                                    "inputs": {
+                                                        "name": "submission_status",
+                                                        "value": false
+                                                    }
+                                                },
+                                                "Wait_untill_submission_is_completed": {
+                                                    "actions": {
+                                                        "Delay_By_2_minutes": {
+                                                            "type": "Wait",
+                                                            "inputs": {
+                                                                "interval": {
+                                                                    "count": 2,
+                                                                    "unit": "Minute"
+                                                                }
+                                                            }
+                                                        },
+                                                        "GetVMRaySubmission": {
+                                                            "runAfter": {
+                                                                "Delay_By_2_minutes": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "type": "Function",
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "submission_id": "@items('For_each_submission')['SubmissionID']"
+                                                                },
+                                                                "function": {
+																	"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRaySubmission')]"
+                                                                }
+                                                            }
+                                                        },
+                                                        "Check_if_submission_is_completed": {
+                                                            "actions": {
+                                                                "Set_Submission_Status_to_True": {
+                                                                    "type": "SetVariable",
+                                                                    "inputs": {
+                                                                        "name": "submission_status",
+                                                                        "value": true
+                                                                    }
+                                                                },
+                                                                "GetVMRaySample": {
+                                                                    "runAfter": {
+                                                                        "Set_Submission_Status_to_True": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "Function",
+                                                                    "inputs": {
+                                                                        "body": {
+                                                                            "sample_id": "@body('GetVMRaySubmission')?['data']['submission_sample_id']"
+                                                                        },
+                                                                        "function": {
+																			"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRaySample')]"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "Check_If_Sample_Verdict_is_Suspicious_or_Malicious": {
+                                                                    "actions": {
+                                                                        "Set_Submission_Report_Variable": {
+                                                                            "type": "SetVariable",
+                                                                            "inputs": {
+                                                                                "name": "submission_report",
+                                                                                "value": [
+                                                                                    {
+                                                                                        "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                                        "Submission Status": "@body('GetVMRaySubmission')['data']['submission_status']",
+                                                                                        "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
+                                                                                        "Sample Classifications": "@body('GetVMRaySample')['data']['sample_classifications']",
+                                                                                        "Sample Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
+                                                                                        "Sample Webif URL": "@body('GetVMRaySample')['data']['sample_webif_url']",
+                                                                                        "Sample Verdict": "@body('GetVMRaySample')['data']['sample_verdict']",
+                                                                                        "Sample VTI Score": "@body('GetVMRaySample')['data']['sample_vti_score']",
+                                                                                        "Sample Verdict Reason Code": "@body('GetVMRaySample')['data']['sample_verdict_reason_code']",
+                                                                                        "Sample Verdict Reason Description": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        "Create_HTML_table": {
+                                                                            "runAfter": {
+                                                                                "Set_Submission_Report_Variable": [
+                                                                                    "Succeeded"
+                                                                                ]
+                                                                            },
+                                                                            "type": "Table",
+                                                                            "inputs": {
+                                                                                "from": "@variables('submission_report')",
+                                                                                "format": "HTML"
+                                                                            }
+                                                                        },
+                                                                        "Add_comment_to_incident_(V3)": {
+                                                                            "runAfter": {
+                                                                                "Create_HTML_table": [
+                                                                                    "Succeeded"
+                                                                                ]
+                                                                            },
+                                                                            "type": "ApiConnection",
+                                                                            "inputs": {
+                                                                                "host": {
+                                                                                    "connection": {
+                                                                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                                                    }
+                                                                                },
+                                                                                "method": "post",
+                                                                                "body": {
+                                                                                    "incidentArmId": "@triggerBody()?['object']?['id']",
+                                                                                    "message": "<p class=\"editor-paragraph\">VMRay Submission Details for @{items('For_each_URL')['url']}</p><p class=\"editor-paragraph\">@{body('Create_HTML_table')}</p>"
+                                                                                },
+                                                                                "path": "/Incidents/Comment"
+                                                                            }
+                                                                        },
+                                                                        "GetVMRayIOCs": {
+                                                                            "runAfter": {
+                                                                                "Add_comment_to_incident_(V3)": [
+                                                                                    "Succeeded"
+                                                                                ]
+                                                                            },
+                                                                            "type": "Function",
+                                                                            "inputs": {
+                                                                                "body": {
+                                                                                    "sample_id": "@body('GetVMRaySample')['data']['sample_id']",
+                                                                                    "submission_id": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                                    "sample_verdict": [
+                                                                                        "malicious",
+                                                                                        "suspicious"
+                                                                                    ],
+                                                                                    "incident_id": "@triggerBody()?['object']?['properties']?['incidentNumber']"
+                                                                                },
+                                                                                "function": {
+																					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRayIOCs')]"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "Check_if_VMRay_has_any_indicators_for_the_sample": {
+                                                                            "actions": {
+                                                                                "Threat_Intelligence_-_Upload_Indicators_of_Compromise_(V2)_(Preview)": {
+                                                                                    "type": "ApiConnection",
+                                                                                    "inputs": {
+                                                                                        "host": {
+                                                                                            "connection": {
+                                                                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                                                            }
+                                                                                        },
+                                                                                        "method": "post",
+                                                                                        "body": {
+                                                                                            "sourcesystem": "VMRay Playbook",
+                                                                                            "indicators": "@body('GetVMRayIOCs')['custom_resp']"
+                                                                                        },
+                                                                                        "path": "/V2/ThreatIntelligence/@{encodeURIComponent(triggerBody()?['workspaceId'])}/UploadIndicators/"
+                                                                                    }
+                                                                                }
+                                                                            },
+                                                                            "runAfter": {
+                                                                                "GetVMRayIOCs": [
+                                                                                    "Succeeded"
+                                                                                ]
+                                                                            },
+                                                                            "else": {
+                                                                                "actions": {}
+                                                                            },
+                                                                            "expression": {
+                                                                                "and": [
+                                                                                    {
+                                                                                        "greater": [
+                                                                                            "@length(body('GetVMRayIOCs')['custom_resp'])",
+                                                                                            0
+                                                                                        ]
+                                                                                    }
+                                                                                ]
+                                                                            },
+                                                                            "type": "If"
+                                                                        }
+                                                                    },
+                                                                    "runAfter": {
+                                                                        "GetVMRaySample": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "else": {
+                                                                        "actions": {}
+                                                                    },
+                                                                    "expression": {
+                                                                        "and": [
+                                                                            {
+                                                                                "not": {
+                                                                                    "equals": [
+                                                                                        "@body('GetVMRaySample')['data']['sample_verdict']",
+                                                                                        "clean"
+                                                                                    ]
+                                                                                }
+                                                                            }
+                                                                        ]
+                                                                    },
+                                                                    "type": "If"
+                                                                }
+                                                            },
+                                                            "runAfter": {
+                                                                "GetVMRaySubmission": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "else": {
+                                                                "actions": {}
+                                                            },
+                                                            "expression": {
+                                                                "and": [
+                                                                    {
+                                                                        "equals": [
+                                                                            "@body('GetVMRaySubmission')?['data']['submission_finished']",
+                                                                            true
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "type": "If"
+                                                        }
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_Submission_Status": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "expression": "@equals(variables('submission_status'),true)",
+                                                    "limit": {
+                                                        "count": 60,
+                                                        "timeout": "PT1H"
+                                                    },
+                                                    "type": "Until"
+                                                }
+                                            },
+                                            "type": "Foreach"
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "UplaodURL": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "else": {
+                                        "actions": {
+                                            "Add_Comment_to_incident": {
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "body": {
+                                                        "incidentArmId": "@triggerBody()?['object']?['id']",
+                                                        "message": "<p class=\"editor-paragraph\">Invalid API Response</p>"
+                                                    },
+                                                    "path": "/Incidents/Comment"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@outputs('UplaodURL')['statusCode']",
+                                                    200
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_URLs": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "SubmissionReportforTable": {
+                            "runAfter": {
+                                "check_submission_status": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "submission_report",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "check_submission_status": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "submission_status",
+                                        "type": "boolean",
+                                        "value": false
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
+                                "connectionName": "[variables('AzureSentinelConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]",
+								"connectionProperties": {
+									"authentication": {
+										"type": "ManagedServiceIdentity"
+									}
+								}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
