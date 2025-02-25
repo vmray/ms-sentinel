@@ -11,7 +11,7 @@
 - Microsoft Azure
   1. Azure functions with Flex Consumption plan.
      Reference: https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan
-  2. Azure Logic App with Cunsumption plan.
+  2. Azure Logic App with Consumption plan.
      Reference: https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-pricing#consumption-multitenant
   3. Azure storage with Standard general-purpose v2.
 
