@@ -23,7 +23,7 @@
   2. Create a role that allows to "View shared submission, analysis and sample" and "Submit sample, manage own jobs, reanalyse old analyses and regenerate analysis reports".
   3. Assign this role to the created user
   4. Login as this user and create an API key by opening Settings > Analysis > API Keys.
-  5. Please save the keys, which will be used in confiring the Azure Function.
+  5. Please save the keys, which will be used in configuring the Azure Function.
 
      
 ## Microsoft Sentinel
