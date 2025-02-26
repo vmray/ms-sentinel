@@ -48,9 +48,9 @@
 
 - After creating the application, we need to set API permissions for connector. For this purpose,
   - Click `Manage->API permissions` tab
-  - Click `Add a permission` button
-  - Select `APIs my organization uses`
+  - Click `Microsoft Graph` button
   - Search `indicator` and click on the `ThreatIndicators.ReadWrite.OwnedBy`, click `Add permissions` button below.
+  - Click on `Grant admin consent`
 
  ![app_per](Images/app_per.png) 
 
