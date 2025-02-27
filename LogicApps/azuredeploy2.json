@@ -25,6 +25,13 @@
                 "description": "Name of the Logic App/Playbook"
             }
         },
+		"workspaceName": {
+            "defaultValue": "",
+            "type": "String",
+            "metadata": {
+                "description": "Workspace name for Log Analytics where Cyble Connector is setup"
+            }
+        },
         "FunctionAppName": {
             "defaultValue": "vmrayenrich",
             "type": "string",
@@ -36,7 +43,9 @@
     "variables": {
 		"functionappName": "[concat(toLower(parameters('FunctionAppName')), take(uniqueString(resourceGroup().id), 3))]",
 		"AzureSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]",
-		"Office365V1": "[concat('office365-', parameters('PlaybookName'))]"
+		"Office365V1": "[concat('office365-', parameters('PlaybookName'))]",
+		"subscription": "[last(split(subscription().id, '/'))]",
+        "resourceGroupName": "[resourceGroup().name]",
 	},
     "resources": [
 		{
@@ -340,7 +349,7 @@
                                                                     "status": "New",
                                                                     "description": "VMRay Email Attachment Scan . From:@{triggerBody()?['from']} . To: @{triggerBody()?['toRecipients']}"
                                                                 },
-                                                                "path": "/Incidents/subscriptions/@{encodeURIComponent('7356a8d4-94f5-4210-a777-f4d6329e1c71')}/resourceGroups/@{encodeURIComponent('VMRay')}/workspaces/@{encodeURIComponent('VMRaySentinel')}"
+                                                                "path": "[concat('/Incidents/subscriptions/',variables('subscription'),'/resourceGroups/',variables('resourceGroupName'),'/workspaces/',parameters('workspaceName'))]"
                                                             }
                                                         },
                                                         "Add_comment_to_incident_(V3)": {
