@@ -29,7 +29,7 @@
             "defaultValue": "",
             "type": "String",
             "metadata": {
-                "description": "Workspace name for Log Analytics where Cyble Connector is setup"
+                "description": "Log Analytics Workspace name"
             }
         },
         "FunctionAppName": {
@@ -45,7 +45,7 @@
 		"AzureSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]",
 		"Office365V1": "[concat('office365-', parameters('PlaybookName'))]",
 		"subscription": "[last(split(subscription().id, '/'))]",
-        "resourceGroupName": "[resourceGroup().name]",
+        "resourceGroupName": "[resourceGroup().name]"
 	},
     "resources": [
 		{
