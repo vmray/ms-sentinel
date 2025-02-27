@@ -25,11 +25,18 @@
                 "description": "Name of the Logic App/Playbook"
             }
         },
-		"workspaceName": {
+		"WorkspaceName": {
             "defaultValue": "",
             "type": "String",
             "metadata": {
                 "description": "Log Analytics Workspace name"
+            }
+        },
+		"WorkspaceID": {
+			"defaultValue": "",
+            "type": "String",
+            "metadata": {
+                "description": "Log Analytics Workspace ID"
             }
         },
         "FunctionAppName": {
@@ -94,10 +101,6 @@
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
                     "contentVersion": "1.0.0.0",
                     "parameters": {
-                        "workspace_id": {
-                            "defaultValue": "199ae89c-11f5-4cdd-95d3-a31fb84486e7",
-                            "type": "String"
-                        },
                         "$connections": {
                             "defaultValue": {},
                             "type": "Object"
@@ -349,7 +352,7 @@
                                                                     "status": "New",
                                                                     "description": "VMRay Email Attachment Scan . From:@{triggerBody()?['from']} . To: @{triggerBody()?['toRecipients']}"
                                                                 },
-                                                                "path": "[concat('/Incidents/subscriptions/',variables('subscription'),'/resourceGroups/',variables('resourceGroupName'),'/workspaces/',parameters('workspaceName'))]"
+                                                                "path": "[concat('/Incidents/subscriptions/',variables('subscription'),'/resourceGroups/',variables('resourceGroupName'),'/workspaces/',parameters('WorkspaceName'))]"
                                                             }
                                                         },
                                                         "Add_comment_to_incident_(V3)": {
@@ -410,7 +413,8 @@
                                                                             "sourcesystem": "VMRay Playbook",
                                                                             "indicators": "@body('GetVMRayIOCs')['custom_resp']"
                                                                         },
-                                                                        "path": "/V2/ThreatIntelligence/@{encodeURIComponent(parameters('workspace_id'))}/UploadIndicators/"
+                                                                        "path": "[concat('/V2/ThreatIntelligence/',parameters('WorkspaceID'),'/UploadIndicators/')]"
+																		
                                                                     }
                                                                 }
                                                             },
