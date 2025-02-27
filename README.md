@@ -112,8 +112,10 @@
 | Azure Client ID   | Enter the Azure Client ID created in the App Registration Step |
 | Azure Client Secret | Enter the Azure Client Secret created in the App Registration Step |
 |Azure Tenant ID | Enter the Azure Tenant ID of the App Registration |
-| Azure Workspacse ID   | Enter the Azure Workspacse ID |
+| Azure Workspacse ID   | Enter the Azure Workspacse ID. Go to  `Log Analytics workspace -> Overview`, Copy `Workspace ID`, refer below image.|
 | App Insights Workspace Resource ID | Go to `Log Analytics workspace` -> `Settings` -> `Properties`, Copy `Resource ID` and paste here |
+
+![40](Images/40.png)
 
 - Once you provide the above values, please click on `Review + create` button.
 
