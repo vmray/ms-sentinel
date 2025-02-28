@@ -93,7 +93,7 @@
 
 # Deploy VMRay Threat Intelligence Feed Function App Connector
 
-- Click on below button to deploy VMRay Sentinel Feed app:
+- Click on below button to deploy:
 
   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FVMRayThreatIntelligence%2Fazure_deploy.json)
 
@@ -141,7 +141,7 @@
 
 ## Deploy VMRay Enrichment Function App Connector
 
-- Click on below button to deploy VMRay Sentinel Feed app:
+- Click on below button to deploy 
 
   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FVMRayEnrichment%2Fazuredeploy.json)
   
@@ -171,7 +171,7 @@
 
 - This playbook can be used to enrich sentinel incidents, this playbook when configured to trigger on seninel incidents, the playbook will collect all the `URL` entities from the Incident and submits them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report to the Incident and creates the IOCs in the microsoft seninel threat intelligence.
 
-- Click on below button
+- Click on below button to deploy
   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy1.json)
 
@@ -198,7 +198,7 @@
 - This playbook can be used to enrich outlook attachements, this playbook when configured will collect all the `attachements` from the email and submits them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report by creating an Incident and creates the IOCs in the microsoft seninel threat intelligence.
 
 
-- Click on below button
+- Click on below button to deploy
   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy2.json)
 
