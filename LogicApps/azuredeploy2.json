@@ -497,10 +497,12 @@
                                                     "expression": {
                                                         "and": [
                                                             {
-                                                                "equals": [
-                                                                    "@body('GetVMRaySample')['data']['sample_verdict']",
-                                                                    "clean"
-                                                                ]
+                                                                "not": {
+                                                                    "equals": [
+                                                                        "@body('GetVMRaySample')['data']['sample_verdict']",
+                                                                        "clean"
+                                                                    ]
+                                                                }
                                                             }
                                                         ]
                                                     },
