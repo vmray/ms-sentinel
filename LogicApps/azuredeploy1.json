@@ -25,6 +25,13 @@
                 "description": "Name of the Logic App/Playbook"
             }
         },
+		"WorkspaceID": {
+			"defaultValue": "",
+            "type": "String",
+            "metadata": {
+                "description": "Log Analytics Workspace ID"
+            }
+        },
         "FunctionAppName": {
             "defaultValue": "vmrayenrich",
             "type": "string",
@@ -281,7 +288,7 @@
                                                                                             "sourcesystem": "VMRay Playbook",
                                                                                             "indicators": "@body('GetVMRayIOCs')['custom_resp']"
                                                                                         },
-                                                                                        "path": "/V2/ThreatIntelligence/@{encodeURIComponent(triggerBody()?['workspaceId'])}/UploadIndicators/"
+                                                                                        "path": "[concat('/V2/ThreatIntelligence/',parameters('WorkspaceID'),'/UploadIndicators/')]"
                                                                                     }
                                                                                 }
                                                                             },
