@@ -465,7 +465,7 @@
                                                                 },
                                                                 "method": "post",
                                                                 "body": {
-                                                                    "To": "smishra@loginsoft.com",
+                                                                    "To": "abc@abc.com",
                                                                     "Subject": "VMRay Email Attachment Scan for file - @{body('GetVMRaySample')['data']['sample_filename']}",
                                                                     "Body": "<p class=\"editor-paragraph\">@{variables('email_body')}</p>",
                                                                     "Importance": "Normal"
