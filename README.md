@@ -1,4 +1,4 @@
-# VMRay Feed and VMRay Enrichment For Microsoft Sentinel
+# VMRay Threat Intelligence Feed and Enrichment Integration - Microsoft Sentinel
 
 **Latest Version:** beta - **Release Date:** 
 
@@ -91,7 +91,7 @@
 
 ![08](Images/08.png)
 
-# Deploy VMRay Sentinel Feed App
+# Deploy VMRay Threat Intelligence Feed Function App Connector
 
 - Click on below button to deploy VMRay Sentinel Feed app:
 
@@ -135,13 +135,20 @@
 
 ![15](Images/15.png)
 
-## Deploy VMRay Enrichment App
+- Once the threat intelligence function app connector is succussefully deployed, the connector saves the IOCS into he Microsoft Sentinel Threat Intelligence.
+
+![ti_feed](Images/ti_feed.png)
+
+## Deploy VMRay Enrichment Function App Connector
+
 - Click on below button to deploy VMRay Sentinel Feed app:
 
   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FVMRayEnrichment%2Fazuredeploy.json)
   
 - It will redirect to feed Configuration page.
-  ![13](Images/13.png)
+
+![13](Images/13.png)
+
 - Please provide the values accordingly
   
 |       Fields       |   Description |
@@ -158,22 +165,60 @@
 - Once you provide the above values, please click on `Review + create` button.
 
 
-## Deploy VMRay Logic Apps
-### Deploy `Submit-URL-VMRay-Analyzer`
+## Deploy VMRay Enrichment Logic Apps
+
+### `Submit-URL-VMRay-Analyzer` Logic App
+
+- This playbook can be used to enrich sentinel incidents, this playbook when configured to trigger on seninel incidents, the playbook will collect all the `URL` entities from the Incident and submites them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report to the Incident and creates the IOCs in the microsoft seninel threat intelligence.
+
 - Click on below button
   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy1.json)
 
 - It will redirect to configuration page
-- please click on `Review + create` button
 
-### Deploy `VMRay-Sandbox_Outlook_Attachment` 
+![url_playbook](url_playbook/13.png)
+
+- Please provide the values accordingly
+
+|       Fields       |   Description |
+|:---------------------|:--------------------
+| Subscription		| Select the appropriate Azure Subscription    | 
+| Resource Group 	| Select the appropriate Resource Group |
+| Region			| Based on Resource Group this will be uto populated |
+| Playbook Name		| Please provide a playbook name, if needed |
+| Workspace ID		| Please provide Log Analytics Workspace ID |
+| Function App Name		| Please provide the VMRay enrichment function app name |
+
+- Once you provide the above values, please click on `Review + create` button.
+
+
+### `VMRay-Sandbox_Outlook_Attachment` Logic App
+
+- This playbook can be used to enrich outlook attachements, this playbook when configured will collect all the `attachements` from the email and submits them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report by creating an Incident and creates the IOCs in the microsoft seninel threat intelligence.
+
+
 - Click on below button
   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy2.json)
 
 - It will redirect to configuration page
-- please click on `Review + create` button
+
+![email_playbook](email_playbook/13.png)
+
+- Please provide the values accordingly
+
+|       Fields       |   Description |
+|:---------------------|:--------------------
+| Subscription		| Select the appropriate Azure Subscription    | 
+| Resource Group 	| Select the appropriate Resource Group |
+| Region			| Based on Resource Group this will be uto populated |
+| Playbook Name		| Please provide a playbook name, if needed |
+| Workspace Name		| Please provide Log Analytics Workspace Name |
+| Workspace ID		| Please provide Log Analytics Workspace ID |
+| Function App Name		| Please provide the VMRay enrichment function app name |
+
+- Once you provide the above values, please click on `Review + create` button.
 
 ## Provide Permission to Logic app
 
@@ -190,11 +235,10 @@
 
 ![06](Images/06.png)
 
-- Select `User,group or service principle` and click on `select members` .
+- Select `Managed Identity` and click on `select members` .
 - Search for the Logic app name deployed above and click on `select`.
 - Click on `Next` 
 
 ![38](Images/38.png)
 
 - Click on `Review + assign`
-
