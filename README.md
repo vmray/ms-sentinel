@@ -135,7 +135,7 @@
 
 ![15](Images/15.png)
 
-- Once the threat intelligence function app connector is succussefully deployed, the connector saves the IOCS into he Microsoft Sentinel Threat Intelligence.
+- Once the threat intelligence function app connector is succussefully deployed, the connector saves the IOCS into the Microsoft Sentinel Threat Intelligence.
 
 ![ti_feed](Images/ti_feed.png)
 
@@ -169,7 +169,7 @@
 
 ### `Submit-URL-VMRay-Analyzer` Logic App
 
-- This playbook can be used to enrich sentinel incidents, this playbook when configured to trigger on seninel incidents, the playbook will collect all the `URL` entities from the Incident and submites them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report to the Incident and creates the IOCs in the microsoft seninel threat intelligence.
+- This playbook can be used to enrich sentinel incidents, this playbook when configured to trigger on seninel incidents, the playbook will collect all the `URL` entities from the Incident and submits them to VMRay analyzer, once the submission is completed, it will add the VMRay Analysis report to the Incident and creates the IOCs in the microsoft seninel threat intelligence.
 
 - Click on below button
   
@@ -242,3 +242,4 @@
 ![38](Images/38.png)
 
 - Click on `Review + assign`
+
