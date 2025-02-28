@@ -177,7 +177,7 @@
 
 - It will redirect to configuration page
 
-![url_playbook](url_playbook/13.png)
+![url_playbook](Images/url_playbook.png)
 
 - Please provide the values accordingly
 
@@ -204,7 +204,7 @@
 
 - It will redirect to configuration page
 
-![email_playbook](email_playbook/13.png)
+![email_playbook](Images/email_playbook.png)
 
 - Please provide the values accordingly
 
