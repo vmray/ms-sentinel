@@ -11,7 +11,7 @@
 - Microsoft Azure
   1. Azure functions with Flex Consumption plan.
      Reference: https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan
-	 **Note: Flex Consumption plans are not available in all regions, please check if the region your are deploying the function is supported, if not we suggest you to deploy the function app with premium plan. **
+	 **Note:** Flex Consumption plans are not available in all regions, please check if the region your are deploying the function is supported, if not we suggest you to deploy the function app with premium plan. **
 	 Reference: https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-how-to?tabs=azure-cli%2Cvs-code-publish&pivots=programming-language-python#view-currently-supported-regions
   2. Azure functions Premium plan.
 	 Reference: https://learn.microsoft.com/en-us/azure/azure-functions/functions-premium-plan
