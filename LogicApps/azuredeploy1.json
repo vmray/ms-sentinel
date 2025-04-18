@@ -319,7 +319,61 @@
                                                                         ]
                                                                     },
                                                                     "else": {
-                                                                        "actions": {}
+                                                                        "actions": {
+                                                                            "Set_Submission_Report_Variable_01": {
+                                                                                "type": "SetVariable",
+                                                                                "inputs": {
+                                                                                    "name": "submission_report",
+                                                                                    "value": [
+                                                                                        {
+                                                                                            "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                                            "Submission Status": "@body('GetVMRaySubmission')['data']['submission_status']",
+                                                                                            "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
+                                                                                            "Sample Classifications": "@body('GetVMRaySample')['data']['sample_classifications']",
+                                                                                            "Sample Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
+                                                                                            "Sample Webif URL": "@body('GetVMRaySample')['data']['sample_webif_url']",
+                                                                                            "Sample Verdict": "@body('GetVMRaySample')['data']['sample_verdict']",
+                                                                                            "Sample VTI Score": "@body('GetVMRaySample')['data']['sample_vti_score']",
+                                                                                            "Sample Verdict Reason Code": "@body('GetVMRaySample')['data']['sample_verdict_reason_code']",
+                                                                                            "Sample Verdict Reason Description": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            },
+                                                                            "Create_HTML_table_1": {
+                                                                                "runAfter": {
+                                                                                    "Set_Submission_Report_Variable_01": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "Table",
+                                                                                "inputs": {
+                                                                                    "from": "@variables('submission_report')",
+                                                                                    "format": "HTML"
+                                                                                }
+                                                                            },
+                                                                            "Add_comment_to_incident_(V3)_1": {
+                                                                                "runAfter": {
+                                                                                    "Create_HTML_table_1": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "ApiConnection",
+                                                                                "inputs": {
+                                                                                    "host": {
+                                                                                        "connection": {
+                                                                                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                                                        }
+                                                                                    },
+                                                                                    "method": "post",
+                                                                                    "body": {
+                                                                                        "incidentArmId": "@triggerBody()?['object']?['id']",
+                                                                                        "message": "<p class=\"editor-paragraph\">VMRay Submission Details for @{items('For_each_URL')['url']}<br>@{body('Create_HTML_table_1')}</p>"
+                                                                                    },
+                                                                                    "path": "/Incidents/Comment"
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     },
                                                                     "expression": {
                                                                         "and": [
