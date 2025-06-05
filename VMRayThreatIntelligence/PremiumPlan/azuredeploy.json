@@ -113,7 +113,7 @@
     "hostingPlanName": "[parameters('functionAppName')]",
     "applicationInsightsName": "[concat(toLower(parameters('functionAppName')), take(uniqueString(resourceGroup().id), 3))]",
     "deploymentStorageContainerName": "vmraystoragecontainer",
-    "storageAccountName": "[concat('vmraystorage', take(uniqueString(resourceGroup().id), 3))]",
+    "storageAccountName": "[concat('vmrayTI', take(uniqueString(resourceGroup().id), 3))]",
     "PollingMap": {
             "Every 5 min": "*/5 * * * *",
             "Every 10 min": "*/10 * * * *",
