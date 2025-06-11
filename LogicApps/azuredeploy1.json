@@ -72,7 +72,7 @@
 				"[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]"
 			],
             "properties": {
-                "state": "Disabled",
+                "state": "Enabled",
                 "definition": {
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
                     "contentVersion": "1.0.0.0",
@@ -101,7 +101,7 @@
                     "actions": {
                         "Entities_-_Get_URLs": {
                             "runAfter": {
-                                "SubmissionReportforTable": [
+                                "Sorted_VMRay_VTIS": [
                                     "Succeeded"
                                 ]
                             },
@@ -191,7 +191,7 @@
                                                                         "body": {
                                                                             "sample_id": "@body('GetVMRaySubmission')?['data']['submission_sample_id']"
                                                                         },
-                                                                        "function": {
+                                                                       "function": {
 																			"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRaySample')]"
                                                                         }
                                                                     }
@@ -204,16 +204,14 @@
                                                                                 "name": "submission_report",
                                                                                 "value": [
                                                                                     {
-                                                                                        "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
                                                                                         "Submission Status": "@body('GetVMRaySubmission')['data']['submission_status']",
-                                                                                        "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
-                                                                                        "Sample Classifications": "@body('GetVMRaySample')['data']['sample_classifications']",
-                                                                                        "Sample Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
-                                                                                        "Sample Webif URL": "@body('GetVMRaySample')['data']['sample_webif_url']",
                                                                                         "Sample Verdict": "@body('GetVMRaySample')['data']['sample_verdict']",
-                                                                                        "Sample VTI Score": "@body('GetVMRaySample')['data']['sample_vti_score']",
-                                                                                        "Sample Verdict Reason Code": "@body('GetVMRaySample')['data']['sample_verdict_reason_code']",
-                                                                                        "Sample Verdict Reason Description": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
+                                                                                        "Classification": "@body('GetVMRaySample')['data']['sample_classifications']",
+                                                                                        "Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
+                                                                                        "Link to the Full Report": "@body('GetVMRaySample')['data']['sample_webif_url']",
+                                                                                        "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                                        "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
+                                                                                        "Notes": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
                                                                                     }
                                                                                 ]
                                                                             }
@@ -246,7 +244,7 @@
                                                                                 "method": "post",
                                                                                 "body": {
                                                                                     "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                                                    "message": "<p class=\"editor-paragraph\">VMRay Submission Details for @{items('For_each_URL')['url']}</p><p class=\"editor-paragraph\">@{body('Create_HTML_table')}</p>"
+                                                                                    "message": "<p class=\"editor-paragraph\">VMRay Submission Details for URL: @{replace(replace(items('For_each_URL')?['url'],'https://',''),'http://','')}</p><p class=\"editor-paragraph\">@{body('Create_HTML_table')}@{body('Create_HTML_table_2')}</p>"
                                                                                 },
                                                                                 "path": "/Incidents/Comment"
                                                                             }
@@ -272,49 +270,10 @@
 																					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRayIOCs')]"
                                                                                 }
                                                                             }
-                                                                        },
-                                                                        "Check_if_VMRay_has_any_indicators_for_the_sample": {
-                                                                            "actions": {
-                                                                                "Threat_Intelligence_-_Upload_Indicators_of_Compromise_(V2)_(Preview)": {
-                                                                                    "type": "ApiConnection",
-                                                                                    "inputs": {
-                                                                                        "host": {
-                                                                                            "connection": {
-                                                                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-                                                                                            }
-                                                                                        },
-                                                                                        "method": "post",
-                                                                                        "body": {
-                                                                                            "sourcesystem": "VMRay Playbook",
-                                                                                            "indicators": "@body('GetVMRayIOCs')['custom_resp']"
-                                                                                        },
-                                                                                        "path": "[concat('/V2/ThreatIntelligence/',parameters('WorkspaceID'),'/UploadIndicators/')]"
-                                                                                    }
-                                                                                }
-                                                                            },
-                                                                            "runAfter": {
-                                                                                "GetVMRayIOCs": [
-                                                                                    "Succeeded"
-                                                                                ]
-                                                                            },
-                                                                            "else": {
-                                                                                "actions": {}
-                                                                            },
-                                                                            "expression": {
-                                                                                "and": [
-                                                                                    {
-                                                                                        "greater": [
-                                                                                            "@length(body('GetVMRayIOCs')['custom_resp'])",
-                                                                                            0
-                                                                                        ]
-                                                                                    }
-                                                                                ]
-                                                                            },
-                                                                            "type": "If"
                                                                         }
                                                                     },
                                                                     "runAfter": {
-                                                                        "GetVMRaySample": [
+                                                                        "Create_HTML_table_2": [
                                                                             "Succeeded"
                                                                         ]
                                                                     },
@@ -326,16 +285,14 @@
                                                                                     "name": "submission_report",
                                                                                     "value": [
                                                                                         {
-                                                                                            "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
                                                                                             "Submission Status": "@body('GetVMRaySubmission')['data']['submission_status']",
-                                                                                            "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
-                                                                                            "Sample Classifications": "@body('GetVMRaySample')['data']['sample_classifications']",
-                                                                                            "Sample Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
-                                                                                            "Sample Webif URL": "@body('GetVMRaySample')['data']['sample_webif_url']",
                                                                                             "Sample Verdict": "@body('GetVMRaySample')['data']['sample_verdict']",
-                                                                                            "Sample VTI Score": "@body('GetVMRaySample')['data']['sample_vti_score']",
-                                                                                            "Sample Verdict Reason Code": "@body('GetVMRaySample')['data']['sample_verdict_reason_code']",
-                                                                                            "Sample Verdict Reason Description": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
+                                                                                            "Classification": "@body('GetVMRaySample')['data']['sample_classifications']",
+                                                                                            "Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
+                                                                                            "Link to the Full Report": "@body('GetVMRaySample')['data']['sample_webif_url']",
+                                                                                            "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                                            "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
+                                                                                            "Notes": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
                                                                                         }
                                                                                     ]
                                                                                 }
@@ -368,7 +325,7 @@
                                                                                     "method": "post",
                                                                                     "body": {
                                                                                         "incidentArmId": "@triggerBody()?['object']?['id']",
-                                                                                        "message": "<p class=\"editor-paragraph\">VMRay Submission Details for @{items('For_each_URL')['url']}<br>@{body('Create_HTML_table_1')}</p>"
+                                                                                        "message": "<p class=\"editor-paragraph\">VMRay Submission Details for URL: @{replace(replace(items('For_each_URL')?['url'],'https://',''),'http://','')}<br>@{body('Create_HTML_table_1')}@{body('Create_HTML_table_2')}</p>"
                                                                                     },
                                                                                     "path": "/Incidents/Comment"
                                                                                 }
@@ -388,6 +345,114 @@
                                                                         ]
                                                                     },
                                                                     "type": "If"
+                                                                },
+                                                                "vmrayenrichcox-GetVMRayVTIs": {
+                                                                    "runAfter": {
+                                                                        "GetVMRaySample": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "Function",
+                                                                    "inputs": {
+                                                                        "body": {
+                                                                            "sample_id": "@body('GetVMRaySubmission')?['data']['submission_sample_id']"
+                                                                        },
+																		"function": {
+																					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRayVTIs')]"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "Set_VTIS": {
+                                                                    "runAfter": {
+                                                                        "vmrayenrichcox-GetVMRayVTIs": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "SetVariable",
+                                                                    "inputs": {
+                                                                        "name": "sample_vtis",
+                                                                        "value": "@body('vmrayenrichcox-GetVMRayVTIs')['data']['threat_indicators']"
+                                                                    }
+                                                                },
+                                                                "Create_HTML_table_2": {
+                                                                    "runAfter": {
+                                                                        "Set_variable": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "Table",
+                                                                    "inputs": {
+                                                                        "from": "@variables('vmray_vtis')",
+                                                                        "format": "HTML"
+                                                                    }
+                                                                },
+                                                                "For_each_VTI": {
+                                                                    "foreach": "@variables('sample_vtis')",
+                                                                    "actions": {
+                                                                        "Compose": {
+                                                                            "type": "Compose",
+                                                                            "inputs": {
+                                                                                "Severity": "@items('For_each_VTI')?['score']",
+                                                                                "Category": "@items('For_each_VTI')?['category']",
+                                                                                "Operation": "@items('For_each_VTI')?['operation']",
+                                                                                "Classifications": "@items('For_each_VTI')?['classifications']"
+                                                                            }
+                                                                        },
+                                                                        "Append_to_array_variable": {
+                                                                            "runAfter": {
+                                                                                "Compose": [
+                                                                                    "Succeeded"
+                                                                                ]
+                                                                            },
+                                                                            "type": "AppendToArrayVariable",
+                                                                            "inputs": {
+                                                                                "name": "vmray_vtis",
+                                                                                "value": "@outputs('Compose')"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "runAfter": {
+                                                                        "Set_variable_2": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "Foreach"
+                                                                },
+                                                                "Set_variable": {
+                                                                    "runAfter": {
+                                                                        "For_each_VTI": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "SetVariable",
+                                                                    "inputs": {
+                                                                        "name": "sorted_vmray_vtis",
+                                                                        "value": "@sort(variables('vmray_vtis'), 'Severity')"
+                                                                    }
+                                                                },
+                                                                "Set_variable_1": {
+                                                                    "runAfter": {
+                                                                        "Set_VTIS": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "SetVariable",
+                                                                    "inputs": {
+                                                                        "name": "vmray_vtis",
+                                                                        "value": "@null"
+                                                                    }
+                                                                },
+                                                                "Set_variable_2": {
+                                                                    "runAfter": {
+                                                                        "Set_variable_1": [
+                                                                            "Succeeded"
+                                                                        ]
+                                                                    },
+                                                                    "type": "SetVariable",
+                                                                    "inputs": {
+                                                                        "name": "sorted_vmray_vtis",
+                                                                        "value": "@null"
+                                                                    }
                                                                 }
                                                             },
                                                             "runAfter": {
@@ -439,7 +504,7 @@
                                                 "inputs": {
                                                     "host": {
                                                         "connection": {
-                                                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                            "name": "@parameters('$connections')['azuresentinel-1']['connectionId']"
                                                         }
                                                     },
                                                     "method": "post",
@@ -497,6 +562,54 @@
                                         "name": "submission_status",
                                         "type": "boolean",
                                         "value": false
+                                    }
+                                ]
+                            }
+                        },
+                        "Sample_VTIS": {
+                            "runAfter": {
+                                "SubmissionReportforTable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "sample_vtis",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "VMRay_VTIS": {
+                            "runAfter": {
+                                "Sample_VTIS": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "vmray_vtis",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Sorted_VMRay_VTIS": {
+                            "runAfter": {
+                                "VMRay_VTIS": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "sorted_vmray_vtis",
+                                        "type": "array"
                                     }
                                 ]
                             }
