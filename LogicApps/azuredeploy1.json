@@ -131,7 +131,7 @@
                   "inputs": {
                     "body": {
                       "url": "@items('For_each_URL')['url']",
-                      "tags": ["url-submission-logic-app"]
+                      "tags": ["url_submission_logic_app"]
                     },
                     "function": {
                       "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/UplaodURL')]"
