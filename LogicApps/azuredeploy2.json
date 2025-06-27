@@ -291,7 +291,7 @@
                                                     "type": "Function",
                                                     "inputs": {
                                                         "body": {
-                                                            "sample_id": "@body('GetVMRaySubmission')?['data']['submission_sample_id']"
+                                                            "sample_id": "@body('GetVMRaySubmission')?['submission_sample_id']"
                                                         },
                                                         "function": {
 															 "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRaySample')]"
@@ -306,16 +306,16 @@
                                                                 "name": "submission_report",
                                                                 "value": [
                                                                     {
-                                                                        "Submission ID": "@body('GetVMRaySubmission')['data']['submission_id']",
-                                                                        "Submission Status": "@body('GetVMRaySubmission')['data']['submission_status']",
-                                                                        "Sample ID": "@body('GetVMRaySample')['data']['sample_id']",
-                                                                        "Sample Classifications": "@body('GetVMRaySample')['data']['sample_classifications']",
-                                                                        "Sample Threat Names": "@body('GetVMRaySample')['data']['sample_threat_names']",
-                                                                        "Sample Webif URL": "@body('GetVMRaySample')['data']['sample_webif_url']",
-                                                                        "Sample Verdict": "@body('GetVMRaySample')['data']['sample_verdict']",
-                                                                        "Sample VTI Score": "@body('GetVMRaySample')['data']['sample_vti_score']",
-                                                                        "Sample Verdict Reason Code": "@body('GetVMRaySample')['data']['sample_verdict_reason_code']",
-                                                                        "Sample Verdict Reason Description": "@body('GetVMRaySample')['data']['sample_verdict_reason_description']"
+                                                                        "Submission ID": "@body('GetVMRaySubmission')['submission_id']",
+                                                                        "Submission Status": "@body('GetVMRaySubmission')['submission_status']",
+                                                                        "Sample ID": "@body('GetVMRaySample')['sample_id']",
+                                                                        "Sample Classifications": "@body('GetVMRaySample')['sample_classifications']",
+                                                                        "Sample Threat Names": "@body('GetVMRaySample')['sample_threat_names']",
+                                                                        "Sample Webif URL": "@body('GetVMRaySample')['sample_webif_url']",
+                                                                        "Sample Verdict": "@body('GetVMRaySample')['sample_verdict']",
+                                                                        "Sample VTI Score": "@body('GetVMRaySample')['sample_vti_score']",
+                                                                        "Sample Verdict Reason Code": "@body('GetVMRaySample')['sample_verdict_reason_code']",
+                                                                        "Sample Verdict Reason Description": "@body('GetVMRaySample')['sample_verdict_reason_description']"
                                                                     }
                                                                 ]
                                                             }
@@ -347,7 +347,7 @@
                                                                 },
                                                                 "method": "put",
                                                                 "body": {
-                                                                    "title": "VMRay Email Attachment Scan Submission Details for file - @{body('GetVMRaySample')['data']['sample_filename']}",
+                                                                    "title": "VMRay Email Attachment Scan Submission Details for file - @{body('GetVMRaySample')['sample_filename']}",
                                                                     "severity": "Medium",
                                                                     "status": "New",
                                                                     "description": "VMRay Email Attachment Scan . From:@{triggerBody()?['from']} . To: @{triggerBody()?['toRecipients']}"
@@ -385,8 +385,8 @@
                                                             "type": "Function",
                                                             "inputs": {
                                                                 "body": {
-                                                                    "sample_id": "@body('GetVMRaySample')['data']['sample_id']",
-                                                                    "submission_id": "@body('GetVMRaySubmission')['data']['submission_id']",
+                                                                    "sample_id": "@body('GetVMRaySample')['sample_id']",
+                                                                    "submission_id": "@body('GetVMRaySubmission')['submission_id']",
                                                                     "sample_verdict": [
                                                                         "malicious",
                                                                         "suspicious"
@@ -447,7 +447,7 @@
                                                             "type": "SetVariable",
                                                             "inputs": {
                                                                 "name": "email_body",
-                                                                "value": "<p class=\"editor-paragraph\">\n<table style=\"width: 100%; border-collapse: collapse; background-color: #f0f0f0;\">\n<thead>\n<tr>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Submission ID</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Submission Status</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample ID</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Classifications</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Threat Names</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Webif URL</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample VTI Score</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict Reason Code</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict Reason Description</th>\n</tr>\n</thead>\n<tbody>\n<tr style=\"background-color: #ffffff; border-bottom: 1px solid #ddd;\">\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySubmission')['data']['submission_id']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySubmission')['data']['submission_status']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_id']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_classifications']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_threat_names']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_webif_url']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_verdict']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_vti_score']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_verdict_reason_code']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['data']['sample_verdict_reason_description']}</td>\n</tr>\n</tbody>\n</table>\n</p>\n"
+                                                                "value": "<p class=\"editor-paragraph\">\n<table style=\"width: 100%; border-collapse: collapse; background-color: #f0f0f0;\">\n<thead>\n<tr>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Submission ID</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Submission Status</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample ID</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Classifications</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Threat Names</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Webif URL</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample VTI Score</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict Reason Code</th>\n<th style=\"background-color: #002a46; color: white; padding: 10px; text-align: left; border: 1px solid #ddd;\">Sample Verdict Reason Description</th>\n</tr>\n</thead>\n<tbody>\n<tr style=\"background-color: #ffffff; border-bottom: 1px solid #ddd;\">\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySubmission')['submission_id']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySubmission')['submission_status']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_id']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_classifications']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_threat_names']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_webif_url']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_verdict']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_vti_score']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_verdict_reason_code']}</td>\n<td style=\"padding: 10px; text-align: left; border: 1px solid #ddd;\">@{body('GetVMRaySample')['sample_verdict_reason_description']}</td>\n</tr>\n</tbody>\n</table>\n</p>\n"
                                                             }
                                                         },
                                                         "Send_an_email_(V2)": {
@@ -466,7 +466,7 @@
                                                                 "method": "post",
                                                                 "body": {
                                                                     "To": "abc@abc.com",
-                                                                    "Subject": "VMRay Email Attachment Scan for file - @{body('GetVMRaySample')['data']['sample_filename']}",
+                                                                    "Subject": "VMRay Email Attachment Scan for file - @{body('GetVMRaySample')['sample_filename']}",
                                                                     "Body": "<p class=\"editor-paragraph\">@{variables('email_body')}</p>",
                                                                     "Importance": "Normal"
                                                                 },
@@ -499,7 +499,7 @@
                                                             {
                                                                 "not": {
                                                                     "equals": [
-                                                                        "@body('GetVMRaySample')['data']['sample_verdict']",
+                                                                        "@body('GetVMRaySample')['sample_verdict']",
                                                                         "clean"
                                                                     ]
                                                                 }
@@ -543,7 +543,7 @@
                                                 "and": [
                                                     {
                                                         "equals": [
-                                                            "@body('GetVMRaySubmission')['data']['submission_finished']",
+                                                            "@body('GetVMRaySubmission')['submission_finished']",
                                                             true
                                                         ]
                                                     }
