@@ -94,7 +94,7 @@
             "description": "Enter Azure Tenant Id of your Azure Active Directory."
         }
     },
-    "AzureWorkspacseID": {
+    "AzureWorkspaceID": {
         "type": "string",
         "minLength": 1,
         "metadata": {
@@ -263,8 +263,8 @@
               "value": "[parameters('AzureTenantID')]"
             },
             {
-              "name": "AzureWorkspacseID",
-              "value": "[parameters('AzureWorkspacseID')]"
+              "name": "AzureWorkspaceID",
+              "value": "[parameters('AzureWorkspaceID')]"
             },
             {
               "name": "Polling",
