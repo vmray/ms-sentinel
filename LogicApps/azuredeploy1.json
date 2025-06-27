@@ -131,7 +131,7 @@
                   "inputs": {
                     "body": {
                       "url": "@items('For_each_URL')['url']",
-                      "tags": "playbook"
+                      "tags": ["url-submission-logic-app"]
                     },
                     "function": {
                       "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/UplaodURL')]"
@@ -427,7 +427,7 @@
                                   },
                                   "type": "Table",
                                   "inputs": {
-                                    "from": "@variables('vmray_vtis')",
+                                    "from": "@reverse(variables('sorted_vmray_vtis'))",
                                     "format": "HTML"
                                   }
                                 },
