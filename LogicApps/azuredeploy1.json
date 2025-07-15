@@ -83,11 +83,15 @@
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
           "contentVersion": "1.0.0.0",
           "parameters": {
+            "Indicator_Expiration_In_Days": {
+                "defaultValue": "30",
+                "type": "String"
+            },
             "$connections": {
-              "defaultValue": {},
-              "type": "Object"
+                "type": "Object",
+                "defaultValue": {}
             }
-          },
+        },
           "triggers": {
             "Microsoft_Sentinel_incident": {
               "type": "ApiConnectionWebhook",
@@ -270,7 +274,8 @@
                                             "malicious",
                                             "suspicious"
                                           ],
-                                          "incident_id": "@triggerBody()?['object']?['properties']?['incidentNumber']"
+                                          "incident_id": "@triggerBody()?['object']?['properties']?['incidentNumber']",
+                                          "valid_until": "@parameters('Indicator_Expiration_In_Days')"
                                         },
                                         "function": {
                                           "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', variables('Functionappname'), '/functions/GetVMRayIOCs')]"
@@ -300,7 +305,7 @@
                                             },
                                             "method": "post",
                                             "body": {
-                                              "sourcesystem": "VMRay Playbook",
+                                              "sourcesystem": "VMRayThreatIntelligence",
                                               "indicators": "@body('GetVMRayIOCs')['custom_resp']"
                                             },
                                             "path": "/V2/ThreatIntelligence/@{encodeURIComponent(triggerBody()?['workspaceId'])}/UploadIndicators/"
