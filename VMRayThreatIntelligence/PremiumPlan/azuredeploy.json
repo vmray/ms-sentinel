@@ -58,6 +58,13 @@
             "description": "Please provide initial fetch interval in days"
         }
     },
+    "IndicatorExpirationInDays": {
+            "type": "string",
+            "defaultValue": "30",
+            "metadata": {
+                "description": "Please specify the number of days the indicator should remain valid."
+            }
+    },
     "TimeInterval": {
         "type": "string",
         "allowedValues": [
@@ -249,6 +256,10 @@
             {
               "name": "VmrayInitialFetchDate",
               "value": "[parameters('VmrayInitialFetchDate')]"
+            },
+            {
+              "name": "IndicatorExpirationInDays",
+              "value": "[parameters('IndicatorExpirationInDays')]"
             },
             {
               "name": "AzureClientID",
