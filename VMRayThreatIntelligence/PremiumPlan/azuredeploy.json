@@ -142,6 +142,7 @@
       },
       "kind": "StorageV2",
       "properties": {
+        "minimumTlsVersion": "TLS1_2",
         "supportsHttpsTrafficOnly": true,
         "defaultToOAuthAuthentication": true,
         "allowBlobPublicAccess": false
@@ -203,6 +204,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "minTlsVersion": "1.2",
           "linuxFxVersion": "python|3.11",
           "appSettings": [
             {
