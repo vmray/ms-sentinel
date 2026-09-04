@@ -1,6 +1,19 @@
 # VMRay Threat Intelligence Feed and Enrichment Integration - Microsoft Sentinel
 
-**Latest Version:** beta - **Release Date:** 
+**Latest Version:** 1.3.0 - **Release Date: 27-08-2026**
+
+## Table of Contents
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [VMRay Configurations](#vmray-configurations)
+- [Microsoft Sentinel](#microsoft-sentinel)
+- [Provide Permission To App Created Above](#provide-permission-to-app-created-above)
+- [Deploy VMRay Threat Intelligence Feed Function App Connector](#deploy-vmray-threat-intelligence-feed-function-app-connector)
+- [Deploy VMRay Enrichment Function App Connector](#deploy-vmray-enrichment-function-app-connector)
+- [Deploy VMRay Enrichment Logic Apps](#deploy-vmray-enrichment-logic-apps)
+- [Provide Permission to Logic app](#provide-permission-to-logic-app)
+- [Version History](#version-history)
+- [Steps to Update from previous version](#steps-to-update-from-previous-version)
 
 ## Overview
 
@@ -239,3 +252,34 @@
 
 - Click on `Review + assign`
 
+
+## Version History
+
+| Version        | Release Date | Release Notes
+|:---------------|:-------------|:---------------- |
+| 1.3.0          | `27-08-2026` | <ul><li>Added URL domain whitelisting to the `Submit-URL-VMRay-Analyzer` playbook. The new `WhitelistedURLDomains` parameter takes a comma-separated list of domains that are never submitted to VMRay. Matching is case-insensitive and also skips subdomains of a listed domain (up to four labels deep).</li><li>When every URL on an incident is whitelisted, the playbook now adds an explanatory incident comment instead of exiting silently.</li><li>Playbook metadata updated with its real prerequisites and the managed-identity / Sentinel role assignments required to run it.</li></ul> |
+| 1.2.0          | `26-08-2026` | <ul><li>Playbooks restructured into the `Playbooks/` layout used by the Azure-Sentinel repository, with the VMRay Enrichment Function App exposed as a reusable custom connector (`VMRayUploadSample`, `UplaodURL`, `GetVMRaySubmission`, `GetVMRaySample`, `GetVMRaySampleByHash`, `GetAnalysisBySampleID`, `GetVMRayIOCs`, `GetVMRayVTIs`, `GetVMRayThreatIndicator`).</li><li>Added `Scripts/Deploy-VMRayOutlookAttachmentPlaybook.ps1` — a single-command PowerShell deployment of the `VMRay-Sandbox_Outlook_Attachment` playbook together with the Function App it depends on.</li><li>Added the automated deployment guide, [docs/AUTOMATED-DEPLOYMENT.md](docs/AUTOMATED-DEPLOYMENT.md).</li></ul> |
+| 1.1.2          | `07-11-2025` | <ul><li>Security hardening: the storage account and Function App deployed by the Threat Intelligence Feed templates now enforce a minimum TLS version of 1.2.</li><li>Function App package is now served from `https://aka.ms/sentinel-VMRay-functionapp` instead of a raw GitHub branch URL, so deployments no longer depend on branch state.</li><li>Fixed storage account name resolution in `azuredeploy.json` (inconsistent lower-casing could produce a resource-id mismatch at deployment time).</li><li>Added the solution architecture diagram.</li></ul> |
+| 1.1.1          | `19-08-2025` | <ul><li>Function App released packages rebuilt. No functional changes.</li></ul> |
+| 1.1.0          | `15-07-2025` | <ul><li>Added a configurable indicator expiration. The new `IndicatorExpirationInDays` / `Indicator_Expiration_In_Days` parameter (default `30`) sets how long uploaded indicators stay valid, and is available on both the Threat Intelligence Feed templates and both Logic Apps.</li><li>Indicator `sourcesystem` renamed from `VMRay Playbook` to `VMRayThreatIntelligence` for consistent attribution in Sentinel Threat Intelligence.</li></ul> |
+| 1.0.1          | `27-06-2025` | <ul><li>Published the full Python source of both Function Apps under `Source/` (`VMRayEnrichmentApp` and `VMRayThreatIntellignceFeedApp`), so the shipped packages can be reviewed and rebuilt.</li></ul> |
+| 1.0.0          | `11-06-2025` | <ul><li>VMRay VTIs (VMRay Threat Identifiers) are now retrieved through the new `GetVMRayVTIs` function and added to the incident comment, ordered by severity, with category, operation and classifications.</li><li>Incident comments now include the sample verdict reason description.</li></ul> |
+| 1.0.0-beta.4   | `14-05-2025` | <ul><li>Threat Intelligence Feed function restructured — the timer trigger entry point moved from `__init__.py` to `main.py`.</li><li>Indicator IDs are now generated deterministically from the indicator type, value and threat source, so re-ingesting the same IOC no longer creates a duplicate indicator.</li></ul> |
+| 1.0.0-beta.3   | `18-04-2025` | <ul><li>Added handling for clean URLs — the playbook now builds a submission report and posts the VMRay verdict as an HTML table comment on the incident for clean verdicts as well, instead of only for malicious and suspicious ones.</li></ul> |
+| 1.0.0-beta.2   | `04-04-2025` | <ul><li>Added an Azure Functions Premium plan deployment template, for regions where the Flex Consumption plan is not available.</li><li>Threat Intelligence Feed templates reorganized into `FlexConsumptionPlan/` and `PremiumPlan/`.</li></ul> |
+| 1.0.0-beta.1   | `25-02-2025` | Initial Release |
+
+
+## Steps to Update from previous version
+
+### Deploy VMRay Threat Intelligence Feed Function App
+> Please redeploy the Threat Intelligence Feed Function App, following the instructions given in the document.
+>- [Deploy VMRay Threat Intelligence Feed Function App Connector](#deploy-vmray-threat-intelligence-feed-function-app-connector)
+
+### Deploy VMRay Enrichment Function App
+> Please redeploy the Enrichment Function App, following the instructions given in the document.
+>- [Deploy VMRay Enrichment Function App Connector](#deploy-vmray-enrichment-function-app-connector)
+
+### Deploy Logic Apps
+> Please redeploy the Logic Apps, following the instructions given in the document.
+>- [Deploy VMRay Enrichment Logic Apps](#deploy-vmray-enrichment-logic-apps)
