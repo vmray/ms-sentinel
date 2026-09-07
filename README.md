@@ -1,6 +1,6 @@
 # VMRay Threat Intelligence Feed and Enrichment Integration - Microsoft Sentinel
 
-**Latest Version:** 1.3.0 - **Release Date: 27-08-2026**
+**Latest Version:** 1.3.1 - **Release Date: 07-09-2026**
 
 ## Table of Contents
 - [Overview](#overview)
@@ -181,7 +181,7 @@
 
 - Click on below button to deploy
   
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy1.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FPlaybooks%2FSubmit-URL-VMRay-Analyzer%2Fazuredeploy.json)
 
 - It will redirect to configuration page
 
@@ -209,7 +209,7 @@
 
 - Click on below button to deploy
   
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FLogicApps%2Fazuredeploy2.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvmray%2Fms-sentinel%2Frefs%2Fheads%2Fmain%2FPlaybooks%2FVMRay-Sandbox_Outlook_Attachment%2Fazuredeploy.json)
 
 - It will redirect to configuration page
 
@@ -257,6 +257,7 @@
 
 | Version        | Release Date | Release Notes
 |:---------------|:-------------|:---------------- |
+| 1.3.1          | `07-09-2026` | <ul><li>Fixed incorrect results when a single incident carried multiple URL entities. The `Submit-URL-VMRay-Analyzer` playbook tracked submission state in workflow-scoped variables (`submission_status`, `submission_report`, `sample_vtis`, `vmray_vtis`, `sorted_vmray_vtis`), which are shared across all loop iterations — concurrent submissions overwrote each other, so an incident could receive a report for the wrong URL or none at all. All shared variables are gone; each iteration now builds its own report with `Compose`/`Select` actions, and the polling loop tests that submission's own `submission_finished` flag.</li><li>URL processing now runs 5 submissions concurrently, with a per-submission staggered start so polling calls to VMRay are spread out rather than issued in a burst.</li><li>VMRay Threat Identifiers are now shaped and sorted with a single `Select` action instead of a nested append loop.</li><li>Added a de-duplicating retry when adding the analysis comment to an incident: if the comment API call fails, the playbook re-reads the incident's existing comments and only re-posts if that submission ID is not already present, so parallel submissions cannot produce duplicate comments.</li><li>The `Deploy to Azure` buttons for both Logic Apps now point at the `Playbooks/` templates introduced in 1.2.0. They previously pointed at the older `LogicApps/azuredeploy1.json` and `LogicApps/azuredeploy2.json` copies, so the URL playbook deployed from this document did not include the fixes above.</li></ul> |
 | 1.3.0          | `27-08-2026` | <ul><li>Added URL domain whitelisting to the `Submit-URL-VMRay-Analyzer` playbook. The new `WhitelistedURLDomains` parameter takes a comma-separated list of domains that are never submitted to VMRay. Matching is case-insensitive and also skips subdomains of a listed domain (up to four labels deep).</li><li>When every URL on an incident is whitelisted, the playbook now adds an explanatory incident comment instead of exiting silently.</li><li>Playbook metadata updated with its real prerequisites and the managed-identity / Sentinel role assignments required to run it.</li></ul> |
 | 1.2.0          | `26-08-2026` | <ul><li>Playbooks restructured into the `Playbooks/` layout used by the Azure-Sentinel repository, with the VMRay Enrichment Function App exposed as a reusable custom connector (`VMRayUploadSample`, `UplaodURL`, `GetVMRaySubmission`, `GetVMRaySample`, `GetVMRaySampleByHash`, `GetAnalysisBySampleID`, `GetVMRayIOCs`, `GetVMRayVTIs`, `GetVMRayThreatIndicator`).</li><li>Added `Scripts/Deploy-VMRayOutlookAttachmentPlaybook.ps1` — a single-command PowerShell deployment of the `VMRay-Sandbox_Outlook_Attachment` playbook together with the Function App it depends on.</li><li>Added the automated deployment guide, [docs/AUTOMATED-DEPLOYMENT.md](docs/AUTOMATED-DEPLOYMENT.md).</li></ul> |
 | 1.1.2          | `07-11-2025` | <ul><li>Security hardening: the storage account and Function App deployed by the Threat Intelligence Feed templates now enforce a minimum TLS version of 1.2.</li><li>Function App package is now served from `https://aka.ms/sentinel-VMRay-functionapp` instead of a raw GitHub branch URL, so deployments no longer depend on branch state.</li><li>Fixed storage account name resolution in `azuredeploy.json` (inconsistent lower-casing could produce a resource-id mismatch at deployment time).</li><li>Added the solution architecture diagram.</li></ul> |
