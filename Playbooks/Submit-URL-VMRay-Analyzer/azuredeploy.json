@@ -101,10 +101,6 @@
               "defaultValue": "",
               "type": "String"
             },
-            "Whitelisted_URL_Domains": {
-                "defaultValue": "",
-                "type": "String"
-            },
             "$connections": {
               "type": "Object",
               "defaultValue": {}
@@ -766,23 +762,6 @@
             },
             "URL_Whitelist": {
               "runAfter": {},
-              "type": "InitializeVariable",
-              "inputs": {
-                "variables": [
-                  {
-                    "name": "url_whitelist",
-                    "type": "array",
-                    "value": "@if(empty(trim(coalesce(parameters('Whitelisted_URL_Domains'), ''))), json('[]'), split(replace(toLower(trim(parameters('Whitelisted_URL_Domains'))), ' ', ''), ','))"
-                  }
-                ]
-              }
-            },
-            "URL_Whitelist": {
-              "runAfter": {
-                "Sorted_VMRay_VTIS": [
-                  "Succeeded"
-                ]
-              },
               "type": "InitializeVariable",
               "inputs": {
                 "variables": [
