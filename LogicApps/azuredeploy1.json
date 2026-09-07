@@ -4,12 +4,15 @@
   "metadata": {
     "title": "VMRay URL Analyis",
     "description": "Submits a url or set of urls associated with an incident to VMRay for Analyis.",
-    "prerequisites": "VMRay API Key.",
-    "prerequisitesDeployTemplateFile": "../VMRay/FunctionApp/azuredeploy.json",
+    "prerequisites": "VMRay API Key. The VMRay Enrichment Function App deployed to the same resource group as this playbook.",
+    "prerequisitesDeployTemplateFile": "../CustomConnector/VMRayEnrichment_FunctionAppConnector/azuredeploy.json",
     "postDeploymentSteps": [
-      "None"
+      "Grant the playbook's system-assigned managed identity the 'Microsoft Sentinel Contributor' role on the Log Analytics workspace, so it can add incident comments and upload threat indicators.",
+      "Grant the Microsoft Sentinel service principal ('Azure Security Insights') the 'Microsoft Sentinel Automation Contributor' role on this resource group, so the playbook can be run from an incident. Microsoft Sentinel -> Automation -> Manage playbook permissions does this for you.",
+      "Optionally set the 'WhitelistedURLDomains' parameter to a comma-separated list of domains that should never be submitted to VMRay (e.g. microsoft.com,google.com). Subdomains of a listed domain are also skipped.",
+      "Attach the playbook to an automation rule if you want it to run automatically on incident creation."
     ],
-    "lastUpdateTime": "2025-02-20T00:00:00.000Z",
+    "lastUpdateTime": "2026-08-13T00:00:00.000Z",
     "entities": [
       "url"
     ],
@@ -43,6 +46,13 @@
       "type": "string",
       "metadata": {
         "description": "Name of the FunctionApp"
+      }
+    },
+    "WhitelistedURLDomains": {
+      "defaultValue": "",
+      "type": "string",
+      "metadata": {
+        "description": "Optional comma-separated list of domains whose URLs are never submitted to VMRay, e.g. 'microsoft.com,google.com'. Matching is case-insensitive and also skips subdomains of a listed domain (up to four labels deep). Leave empty to submit every URL."
       }
     }
   },
@@ -87,6 +97,10 @@
                 "defaultValue": "30",
                 "type": "String"
             },
+            "Whitelisted_URL_Domains": {
+                "defaultValue": "",
+                "type": "String"
+            },
             "$connections": {
                 "type": "Object",
                 "defaultValue": {}
@@ -111,7 +125,7 @@
           "actions": {
             "Entities_-_Get_URLs": {
               "runAfter": {
-                "Sorted_VMRay_VTIS": [
+                "URL_Whitelist": [
                   "Succeeded"
                 ]
               },
@@ -127,8 +141,95 @@
                 "path": "/entities/url"
               }
             },
+            "Select_URL_Hosts": {
+              "runAfter": {
+                "Entities_-_Get_URLs": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Select",
+              "inputs": {
+                "from": "@coalesce(body('Entities_-_Get_URLs')?['URLs'], json('[]'))",
+                "select": {
+                  "url": "@item()?['url']",
+                  "hostRaw": "@if(empty(coalesce(item()?['url'], '')), '', first(split(first(split(first(split(if(contains(coalesce(item()?['url'], ''), '://'), split(coalesce(item()?['url'], ''), '://')[1], coalesce(item()?['url'], '')), '/')), '?')), '#')))"
+                }
+              }
+            },
+            "Normalize_URL_Hosts": {
+              "runAfter": {
+                "Select_URL_Hosts": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Select",
+              "inputs": {
+                "from": "@body('Select_URL_Hosts')",
+                "select": {
+                  "url": "@item()?['url']",
+                  "host": "@toLower(trim(first(split(last(split(coalesce(item()?['hostRaw'], ''), '@')), ':'))))"
+                }
+              }
+            },
+            "Filter_Whitelisted_URLs": {
+              "runAfter": {
+                "Normalize_URL_Hosts": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('Normalize_URL_Hosts')",
+                "where": "@and(not(empty(item()?['host'])), empty(intersection(variables('url_whitelist'), createArray(item()?['host'], join(skip(split(item()?['host'], '.'), max(0, sub(length(split(item()?['host'], '.')), 2))), '.'), join(skip(split(item()?['host'], '.'), max(0, sub(length(split(item()?['host'], '.')), 3))), '.'), join(skip(split(item()?['host'], '.'), max(0, sub(length(split(item()?['host'], '.')), 4))), '.')))))"
+              }
+            },
+            "Comment_If_All_URLs_Were_Whitelisted": {
+              "runAfter": {
+                "Filter_Whitelisted_URLs": [
+                  "Succeeded"
+                ]
+              },
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "greater": [
+                      "@length(body('Normalize_URL_Hosts'))",
+                      0
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@length(body('Filter_Whitelisted_URLs'))",
+                      0
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Add_whitelist_comment_to_incident": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "body": {
+                      "incidentArmId": "@triggerBody()?['object']?['id']",
+                      "message": "<p class=\"editor-paragraph\">VMRay: all @{length(body('Normalize_URL_Hosts'))} URL(s) on this incident matched the configured domain whitelist and were not submitted for analysis.</p>"
+                    },
+                    "path": "/Incidents/Comment"
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
             "For_each_URL": {
-              "foreach": "@body('Entities_-_Get_URLs')?['URLs']",
+              "foreach": "@body('Filter_Whitelisted_URLs')",
               "actions": {
                 "UplaodURL": {
                   "type": "Function",
@@ -554,7 +655,7 @@
                         "inputs": {
                           "host": {
                             "connection": {
-                              "name": "@parameters('$connections')['azuresentinel-1']['connectionId']"
+                              "name": "@parameters('$connections')['azuresentinel']['connectionId']"
                             }
                           },
                           "method": "post",
@@ -581,7 +682,7 @@
                 }
               },
               "runAfter": {
-                "Entities_-_Get_URLs": [
+                "Filter_Whitelisted_URLs": [
                   "Succeeded"
                 ]
               },
@@ -663,11 +764,31 @@
                   }
                 ]
               }
+            },
+            "URL_Whitelist": {
+              "runAfter": {
+                "Sorted_VMRay_VTIS": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "url_whitelist",
+                    "type": "array",
+                    "value": "@if(empty(trim(coalesce(parameters('Whitelisted_URL_Domains'), ''))), json('[]'), split(replace(toLower(trim(parameters('Whitelisted_URL_Domains'))), ' ', ''), ','))"
+                  }
+                ]
+              }
             }
           },
           "outputs": {}
         },
         "parameters": {
+          "Whitelisted_URL_Domains": {
+            "value": "[parameters('WhitelistedURLDomains')]"
+          },
           "$connections": {
             "value": {
               "azuresentinel": {
